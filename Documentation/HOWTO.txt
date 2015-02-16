@@ -1,0 +1,86 @@
+This HOWTO explains how to use the Avisynth Tracking Filter.
+
+IF YOU ARE A REALLY BEGINNER WITH AVISYNTH: you might want to read
+HOWTO-Beginners.txt instead...
+
+The scripts in this pacakge require you to have Python 2.6 installed.
+Go to www.python.org, and download and install it, if you haven't done
+so yet.
+
+Using the filter involves two major steps: acquisition, and applying
+the desired effect.
+
+Step 1: Acquisition
+-------------------
+
+First, create a new directory to store all the outputs. Then, write the
+script to load your movie, and store it in that directory. For example,
+my script `test.avs' looked like this:
+
+DirectShowSource("c:\temp\skimovies\originals\GOPR0002.mp4", fps=29.97)
+
+Now drag the script over the file "track.py", in the tracking directory. 
+It will create a new script, 'testTrackGUI.avs' in your directory. The new
+script will look something like this:
+
+DirectShowSource("c:\temp\skimovies\originals\GOPR0002.mp4", fps=29.97)
+ConvertToRGB24()
+LoadPlugin( "c:\temp\skimovies\avisynthtrackin\filter.dll" )
+TrackGUI( 1, "C:\temp\skimovies\avs\testTrackingResult.txt" )
+
+Now, open the new script in virtual dub. Use virtual dub to skip to the
+first frame the object is clearly visible at. Switch to the second window,
+and using the mouse, drag over the tracking region. Tip for selecting a
+good region: select a region as big as possible, but one that the object
+is taking at least 80% of (even if not all the object will be tracked).
+
+New at version 1.1: Support for tracking several boxed selections. Just
+select No when the message box pops up, and select another reagion. After
+selecting the last one, press Yes at the message box.
+
+Now the algorithm will run and track the object into the future frames.
+While it's running, virtualdub will not respond. The algorithm will stop
+when the video ended, or when it lost most of it's tracking points.
+
+REVIEW the result: it's recomended you review the result, before continuing
+your work. The result will show the tracked features over the video, using
+green dots (so virtual dub will now show it). You want most of the green
+dots to be over the object, it's ok if three or four went somewhere else.
+
+When you reach a frame in which it's no longer true, or the last frame the
+object was successfully tracked at, repeat the process of tracking.
+
+The dots will show only the last tracking result, if more than one are
+in the same frame.
+
+All the dots of each frame are written down in a text format in the result
+file
+
+Step 2: Processing the result
+-----------------------------
+
+The result file contains the cordinates of features of the tracking region.
+One can program any effects based on that information. For now, only one
+effect is in the project: FollowCrop.
+
+FollowCrop: Crop each frame around the tracked region as the center
+-------------------------------------------------------------------
+
+After the tracking step is completed, drag your original avs file over
+followcrop.py in the processing directory. A new file will be created at
+the same directory as your script, with the commands required. So for
+my 'test.avs' example, the result would be named testFollowCrop.avs,
+and it will look like this:
+
+DirectShowSource("c:\temp\skimovies\originals\GOPR0002.mp4", fps=29.97)
+ConvertToRGB24()
+LoadPlugin( "c:\temp\skimovies\avisynthtrackin\filter.dll" )
+FollowCrop(640,360,"xOffset","yOffset")
+TrackGUI( 1, "C:\temp\skimovies\avs\testTrackingResult.txt" )
+ConditionalReader( "c:\temp\skimovies\avs\testXOffset.txt", "xOffset", false)
+ConditionalReader( "c:\temp\skimovies\avs\testYOffset.txt", "yOffset", false)
+
+It will also produce the two conditional reader variable files.
+
+Thats it! Just open testFollowCrop.avs in virtual dub, or import it into
+another avisynth script.
